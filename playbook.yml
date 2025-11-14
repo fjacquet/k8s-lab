@@ -1,0 +1,33 @@
+---
+# Main playbook for RKE2 MLOps Lab Automation
+# This playbook orchestrates the deployment of a 5-node RKE2 cluster
+# with infrastructure services (Longhorn, MetalLB, cert-manager) and
+# application services (MinIO, ClearML, n8n)
+
+- name: Prepare all nodes with prerequisites
+  hosts: rke2_cluster
+  become: yes
+  roles:
+    - common
+
+- name: Deploy RKE2 HA cluster
+  hosts: rke2_cluster
+  become: yes
+  roles:
+    - role: lablabs.rke2
+
+- name: Deploy infrastructure services
+  hosts: rke2_servers[0]
+  become: yes
+  roles:
+    - role: k8s_apps
+      vars:
+        deployment_phase: infrastructure
+
+- name: Deploy application services
+  hosts: rke2_servers[0]
+  become: yes
+  roles:
+    - role: k8s_apps
+      vars:
+        deployment_phase: applications

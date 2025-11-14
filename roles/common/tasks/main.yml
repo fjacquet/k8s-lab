@@ -1,0 +1,38 @@
+---
+# Common role - Node prerequisites for RKE2 cluster
+# Requirements: 1.1, 1.2, 2.4, 12.1
+
+- name: Verify Ubuntu 24.04 LTS
+  debug:
+    msg: "Warning: Node is running {{ ansible_distribution }} {{ ansible_distribution_version }}, expected Ubuntu 24.04"
+  when: ansible_distribution != "Ubuntu" or ansible_distribution_version != "24.04"
+
+- name: Update APT cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install required packages
+  apt:
+    name:
+      - open-iscsi
+      - curl
+      - vim
+      - ca-certificates
+    state: present
+
+- name: Enable and start iscsid service
+  systemd:
+    name: iscsid
+    enabled: yes
+    state: started
+
+- name: Disable swap immediately
+  command: swapoff -a
+  when: ansible_swaptotal_mb > 0
+
+- name: Remove swap from fstab
+  lineinfile:
+    path: /etc/fstab
+    regexp: '.*swap.*'
+    state: absent

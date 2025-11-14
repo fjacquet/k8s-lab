@@ -1,0 +1,59 @@
+# Ansible-lint configuration for RKE2 Lab Automation
+
+# Exclude paths
+exclude_paths:
+  - .venv/
+  - .git/
+  - .kiro/
+
+# Enable offline mode (don't check for updates)
+offline: false
+
+# Set verbosity
+verbosity: 1
+
+# Skip specific rules
+skip_list:
+  - yaml[line-length]  # Allow longer lines for readability
+  - yaml[truthy]       # Allow yes/no in addition to true/false (Ansible convention)
+  - name[casing]       # Allow flexible task naming
+  - risky-file-permissions  # We handle permissions explicitly
+  - var-naming[no-role-prefix]  # Allow deployment_phase without role prefix
+
+# Warn only for these rules (don't fail)
+warn_list:
+  - experimental
+  - no-changed-when
+  - command-instead-of-module
+
+# Enable specific rules
+enable_list:
+  - yaml
+
+# Use specific Ansible version for linting
+# This helps avoid deprecation warnings
+use_default_rules: true
+
+# Mock modules and roles for linting
+mock_modules:
+  - kubernetes.core.k8s
+  - kubernetes.core.k8s_info
+  - kubernetes.core.helm
+  - kubernetes.core.helm_repository
+
+mock_roles:
+  - lablabs.rke2
+
+# Kinds of files to lint
+kinds:
+  - yaml: "**/*.yaml"
+  - yaml: "**/*.yml"
+  - playbook: "**/playbook*.yml"
+  - tasks: "**/tasks/*.yml"
+  - handlers: "**/handlers/*.yml"
+  - vars: "**/vars/*.yml"
+  - defaults: "**/defaults/*.yml"
+  - meta: "**/meta/*.yml"
+
+# Profile to use (can be: min, basic, moderate, safety, shared, production)
+profile: production

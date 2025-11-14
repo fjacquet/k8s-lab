@@ -1,0 +1,8 @@
+---
+roles:
+  - name: lablabs.rke2
+    version: "1.49.0"
+
+collections:
+  - name: kubernetes.core
+    version: ">=3.0.0"

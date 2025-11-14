@@ -1,0 +1,68 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+venv/
+env/
+
+# Ansible
+*.retry
+.ansible/
+ansible.log
+
+# Ansible Vault - DO NOT IGNORE vars/secrets.yml (it should be encrypted and committed)
+# Only ignore unencrypted backup files
+vars/secrets.yml.bak
+vars/secrets.yml.tmp
+
+# Ansible Galaxy
+roles/lablabs.rke2/
+collections/
+
+# Kubernetes
+kubeconfig
+*.kubeconfig
+.kube/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.molecule/
+.cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Documentation
+docs/_build/
+site/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+
+# Security scanning results
+.bandit
+.safety
+
+# Ruff cache
+.ruff_cache/
+vars/secrets.yml

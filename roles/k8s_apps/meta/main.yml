@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: MIT-0
+galaxy_info:
+  author: RKE2 Lab Automation Project
+  description: Deploys infrastructure and application services to RKE2 Kubernetes cluster
+  company: ""
+  license: MIT-0
+  min_ansible_version: "2.15"
+
+  platforms:
+    - name: Ubuntu
+      versions:
+        - noble  # 24.04 LTS
+
+  galaxy_tags:
+    - kubernetes
+    - rke2
+    - k8s
+    - helm
+    - mlops
+    - infrastructure
+    - automation
+
+dependencies: []
+
+collections:
+  - kubernetes.core

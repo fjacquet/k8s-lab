@@ -1,0 +1,51 @@
+# SPDX-License-Identifier: MIT-0
+---
+# defaults file for k8s_apps role
+
+# Deployment phase: 'infrastructure' or 'applications'
+# This variable MUST be set when calling the role
+deployment_phase: ""
+
+# Infrastructure Phase Variables (Task 4 - Pending Implementation)
+# ================================================================
+
+# Longhorn - Distributed block storage
+longhorn_version: "1.6.0"
+longhorn_namespace: "longhorn-system"
+
+# MetalLB - Bare-metal load balancer
+metallb_version: "0.14.3"
+metallb_namespace: "metallb-system"
+# metallb_ip_range defined in inventory.yml
+
+# cert-manager - Certificate management
+certmanager_version: "v1.14.2"
+certmanager_namespace: "cert-manager"
+certmanager_letsencrypt_server: "https://acme-staging-v02.api.letsencrypt.org/directory"
+# acme_email and domain defined in inventory.yml
+
+# Application Phase Variables (Task 5 - Pending Implementation)
+# ==============================================================
+
+# MinIO - S3-compatible object storage
+minio_version: "5.0.15"
+minio_namespace: "minio"
+minio_storage_size: "50Gi"
+# minio_root_user and minio_root_pass defined in inventory.yml
+
+# ClearML - MLOps platform
+clearml_version: "7.4.0"
+clearml_namespace: "clearml"
+clearml_storage_size: "20Gi"
+
+# n8n - Workflow automation
+n8n_version: "0.234.0"
+n8n_namespace: "n8n"
+n8n_storage_size: "5Gi"
+# n8n_admin_user and n8n_admin_pass defined in inventory.yml
+
+# Kubernetes Configuration
+# ========================
+kubeconfig_path: "/etc/rancher/rke2/rke2.yaml"
+kubectl_bin: "/var/lib/rancher/rke2/bin/kubectl"
+helm_bin: "/usr/local/bin/helm"

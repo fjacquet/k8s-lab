@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Source to Docs Sync",
+  "description": "Monitors Python source files, Ansible playbooks, roles, and configuration files. When changes are detected, prompts the agent to update the README.md with relevant documentation changes to keep it in sync with the codebase.",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Source files have been modified. Please review the changes and update the README.md documentation to reflect any new functionality, configuration changes, or usage instructions. Ensure the documentation accurately describes the current state of the project including setup steps, dependencies, and usage examples."
+  }
+}

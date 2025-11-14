@@ -1,0 +1,16 @@
+---
+# Basic test playbook for common role
+# 
+# To test this role, run the main playbook with --check flag:
+#   ansible-playbook playbook.yml --check --limit <test-node>
+#
+# For comprehensive testing, consider using Molecule:
+#   https://molecule.readthedocs.io/
+#
+# This basic test file is provided by ansible-galaxy for reference.
+
+- hosts: localhost
+  connection: local
+  become: yes
+  roles:
+    - common

@@ -1,0 +1,72 @@
+[project]
+name = "k8s-lab"
+version = "0.1.0"
+description = "RKE2 Lab Automation - Automated MLOps and workflow automation platform deployment"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "ansible>=10.0.0",
+    "kubernetes>=30.0.0",
+    "jmespath>=1.0.0",
+    "ansible-lint>=25.5.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Linting and code quality
+    "ansible-lint>=24.0.0",
+    "yamllint>=1.35.0",
+    "ruff>=0.8.0",
+    
+    # Testing
+    "pytest>=8.0.0",
+    "pytest-ansible>=24.0.0",
+    "pytest-cov>=4.1.0",
+    "molecule>=24.0.0",
+    "molecule-plugins[docker]>=23.5.0",
+    
+    # Security scanning
+    "bandit>=1.7.0",
+    "safety>=3.0.0",
+    
+    # Documentation
+    "sphinx>=7.0.0",
+    "sphinx-rtd-theme>=2.0.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --cov=. --cov-report=term-missing --cov-report=html"
+
+[tool.coverage.run]
+omit = [
+    "tests/*",
+    ".venv/*",
+]
+
+[tool.bandit]
+exclude_dirs = ["tests", ".venv"]
+skips = ["B101"]  # Skip assert_used in tests

@@ -1,0 +1,38 @@
+title: RKE2 Lab Automation
+description: Automated deployment of a production-ready MLOps platform on RKE2 Kubernetes
+theme: jekyll-theme-cayman
+show_downloads: true
+
+github:
+  repository_url: https://github.com/fjacquet/k8s-lab
+  is_project_page: true
+
+plugins:
+  - jekyll-relative-links
+  - jekyll-optional-front-matter
+  - jekyll-titles-from-headings
+  - jekyll-seo-tag
+
+relative_links:
+  enabled: true
+  collections: true
+
+titles_from_headings:
+  enabled: true
+  strip_title: true
+  collections: true
+
+# Exclude files from processing
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+
+# Markdown settings
+markdown: kramdown
+kramdown:
+  input: GFM
+  hard_wrap: false
+  syntax_highlighter: rouge

@@ -1,3 +1,7 @@
 # SPDX-License-Identifier: MIT-0
 ---
 # defaults file for common
+
+# DNS Configuration
+dns_nameserver: "172.16.86.10"
+dns_domain: "ljf-home"

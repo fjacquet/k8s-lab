@@ -9,6 +9,7 @@ This guide covers common maintenance operations for your RKE2 cluster.
 Increases worker capacity for running workloads.
 
 1. **Prepare the new node**:
+
    - Install Ubuntu 24.04 LTS
    - Configure static IP address
    - Set up SSH access with the same user as other nodes
@@ -20,31 +21,31 @@ Increases worker capacity for running workloads.
 # inventory.yml
 rke2_agents:
   hosts:
-    node-4:
+    opt4:
       ansible_host: 172.16.86.104
-    node-5:
+    opt5:
       ansible_host: 172.16.86.105
-    node-6:  # New agent node
+    opt6: # New agent node
       ansible_host: 172.16.86.106
 ```
 
 3. **Test connectivity**:
 
 ```bash
-ansible node-6 -m ping
+ansible opt6 -m ping
 ```
 
 4. **Deploy to new node only**:
 
 ```bash
-ansible-playbook playbook.yml --limit node-6 --ask-vault-pass
+ansible-playbook playbook.yml --limit opt6 --ask-vault-pass
 ```
 
 5. **Verify node joined**:
 
 ```bash
 kubectl get nodes
-# Should show node-6 in Ready state
+# Should show opt6 in Ready state
 ```
 
 ### Adding a Server Node
@@ -62,13 +63,13 @@ Increases control plane HA (only add to maintain odd numbers: 3, 5, 7).
 1. **Drain the node** (move workloads to other nodes):
 
 ```bash
-kubectl drain <node-name> --ignore-daemonsets --delete-emptydir-data
+kubectl drain <optname> --ignore-daemonsets --delete-emptydir-data
 ```
 
 2. **Delete the node from cluster**:
 
 ```bash
-kubectl delete node <node-name>
+kubectl delete node <optname>
 ```
 
 3. **Remove from inventory**:
@@ -107,7 +108,7 @@ kubectl get nodes -o wide
 ```yaml
 # inventory.yml
 vars:
-  rke2_version: "v1.29.0+rke2r1"  # New version
+  rke2_version: "v1.29.0+rke2r1" # New version
 ```
 
 3. **Upgrade server nodes first**:
@@ -207,7 +208,7 @@ kubectl get pods -A
 
 ```bash
 # On any server node
-kubectl -n kube-system exec etcd-node-1 -- etcdctl \
+kubectl -n kube-system exec etcd-opt1 -- etcdctl \
   --endpoints=https://127.0.0.1:2379 \
   --cacert=/var/lib/rancher/rke2/server/tls/etcd/server-ca.crt \
   --cert=/var/lib/rancher/rke2/server/tls/etcd/server-client.crt \
@@ -215,7 +216,7 @@ kubectl -n kube-system exec etcd-node-1 -- etcdctl \
   snapshot save /tmp/etcd-snapshot-$(date +%Y%m%d-%H%M%S).db
 
 # Copy snapshot to safe location
-kubectl cp kube-system/etcd-node-1:/tmp/etcd-snapshot-*.db ./backups/
+kubectl cp kube-system/etcd-opt1:/tmp/etcd-snapshot-*.db ./backups/
 ```
 
 ### Backup Persistent Volumes (via Longhorn)
@@ -281,7 +282,7 @@ The deployment uses Let's Encrypt **staging** by default. To switch to productio
 1. **Edit ClusterIssuer** in `roles/k8s_apps/tasks/main.yml`:
 
 ```yaml
-server: https://acme-v02.api.letsencrypt.org/directory  # Production
+server: https://acme-v02.api.letsencrypt.org/directory # Production
 ```
 
 2. **Update ingress annotations** to use production issuer:
@@ -379,22 +380,26 @@ For more troubleshooting, see [Troubleshooting Guide](TROUBLESHOOTING.md).
 ## Maintenance Schedule
 
 ### Daily
+
 - Monitor service accessibility
 - Check for pod restarts
 - Review cluster events
 
 ### Weekly
+
 - Run post-deployment validation
 - Check storage usage
 - Review certificate expiration dates
 
 ### Monthly
+
 - Test backup and restore procedures
 - Review and update service versions
 - Test idempotency
 - Review security updates
 
 ### Quarterly
+
 - Plan RKE2 version upgrades
 - Review and update documentation
 - Audit access credentials

@@ -16,7 +16,7 @@ RKE2 (Rancher Kubernetes Engine 2) is a production-ready Kubernetes distribution
 - Enable and start the service: `systemctl enable rke2-server.service && systemctl start rke2-server.service`
 - Configuration file location: `/etc/rancher/rke2/config.yaml`
 - Kubeconfig location: `/etc/rancher/rke2/rke2.yaml`
-- Node token location: `/var/lib/rancher/rke2/server/node-token`
+- Node token location: `/var/lib/rancher/rke2/server/opttoken`
 
 ### Agent Node Installation
 
@@ -43,7 +43,7 @@ tls-san:
   - <server-ip-1>
   - <server-ip-2>
 disable:
-  - rke2-service-lb  # Disable if using MetalLB
+  - rke2-service-lb # Disable if using MetalLB
 ```
 
 ### Agent Config Template
@@ -51,7 +51,7 @@ disable:
 ```yaml
 # /etc/rancher/rke2/config.yaml
 server: https://<server-ip>:9345
-token: <node-token-from-server>
+token: <opttoken-from-server>
 ```
 
 ## Network Configuration

@@ -46,13 +46,13 @@ This automation deploys a complete 5-node RKE2 cluster with:
 │                    5-Node RKE2 Cluster                       │
 │                                                              │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐                 │
-│  │ Node-1   │  │ Node-2   │  │ Node-3   │                 │
+│  │ opt1   │  │ opt2   │  │ opt3   │                 │
 │  │ (Server) │  │ (Server) │  │ (Server) │                 │
 │  │ RKE2 HA  │  │ RKE2 HA  │  │ RKE2 HA  │                 │
 │  └──────────┘  └──────────┘  └──────────┘                 │
 │                                                              │
 │  ┌──────────┐  ┌──────────┐                                │
-│  │ Node-4   │  │ Node-5   │                                │
+│  │ opt4   │  │ opt5   │                                │
 │  │ (Agent)  │  │ (Agent)  │                                │
 │  └──────────┘  └──────────┘                                │
 │                                                              │

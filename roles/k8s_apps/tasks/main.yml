@@ -203,13 +203,14 @@
         namespace: "{{ metallb_namespace }}"
         name: metallb-speaker
         kubeconfig: "{{ kubeconfig_path }}"
-        wait: yes
-        wait_condition:
-          type: Available
-        wait_timeout: 300
       register: metallb_speaker_status
-      retries: 3
+      retries: 30
       delay: 10
+      until: >
+        metallb_speaker_status.resources | length > 0 and
+        metallb_speaker_status.resources[0].status.numberReady is defined and
+        metallb_speaker_status.resources[0].status.desiredNumberScheduled is defined and
+        metallb_speaker_status.resources[0].status.numberReady == metallb_speaker_status.resources[0].status.desiredNumberScheduled
 
     - name: Display MetalLB controller readiness
       debug:
@@ -405,426 +406,426 @@
       debug:
         msg: "Kubernetes API is ready for application deployment"
 
-    # MinIO - S3-compatible object storage
-    - name: Add MinIO Helm repository
-      kubernetes.core.helm_repository:
-        name: minio
-        repo_url: https://charts.min.io/
-        state: present
+    # # MinIO - S3-compatible object storage
+    # - name: Add MinIO Helm repository
+    #   kubernetes.core.helm_repository:
+    #     name: minio
+    #     repo_url: https://charts.min.io/
+    #     state: present
 
-    - name: Deploy MinIO (S3 object storage)
-      kubernetes.core.helm:
-        name: minio
-        chart_ref: minio/minio
-        chart_version: "{{ minio_version }}"
-        release_namespace: "{{ minio_namespace }}"
-        create_namespace: yes
-        kubeconfig: "{{ kubeconfig_path }}"
-        state: present
-        wait: yes
-        wait_timeout: 5m
-        values:
-          persistence:
-            enabled: true
-            storageClass: "longhorn"
-            size: "{{ minio_storage_size }}"
-          rootUser: "{{ minio_root_user }}"
-          rootPassword: "{{ minio_root_pass }}"
-          service:
-            type: ClusterIP
-          ingress:
-            enabled: true
-            ingressClassName: "nginx"
-            hosts:
-              - "minio.{{ domain }}"
-            annotations:
-              cert-manager.io/cluster-issuer: "letsencrypt-staging"
-      register: minio_deploy_result
-      failed_when: false
+    # - name: Deploy MinIO (S3 object storage)
+    #   kubernetes.core.helm:
+    #     name: minio
+    #     chart_ref: minio/minio
+    #     chart_version: "{{ minio_version }}"
+    #     release_namespace: "{{ minio_namespace }}"
+    #     create_namespace: yes
+    #     kubeconfig: "{{ kubeconfig_path }}"
+    #     state: present
+    #     wait: yes
+    #     wait_timeout: 5m
+    #     values:
+    #       persistence:
+    #         enabled: true
+    #         storageClass: "longhorn"
+    #         size: "{{ minio_storage_size }}"
+    #       rootUser: "{{ minio_root_user }}"
+    #       rootPassword: "{{ minio_root_pass }}"
+    #       service:
+    #         type: ClusterIP
+    #       ingress:
+    #         enabled: true
+    #         ingressClassName: "nginx"
+    #         hosts:
+    #           - "minio.{{ domain }}"
+    #         annotations:
+    #           cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    #   register: minio_deploy_result
+    #   failed_when: false
 
-    - name: Handle MinIO deployment failure
-      when: minio_deploy_result.failed | default(false)
-      block:
-        - name: Get MinIO pods status for diagnostics
-          kubernetes.core.k8s_info:
-            kind: Pod
-            namespace: "{{ minio_namespace }}"
-            kubeconfig: "{{ kubeconfig_path }}"
-          register: minio_pods_status
-          ignore_errors: yes
+    # - name: Handle MinIO deployment failure
+    #   when: minio_deploy_result.failed | default(false)
+    #   block:
+    #     - name: Get MinIO pods status for diagnostics
+    #       kubernetes.core.k8s_info:
+    #         kind: Pod
+    #         namespace: "{{ minio_namespace }}"
+    #         kubeconfig: "{{ kubeconfig_path }}"
+    #       register: minio_pods_status
+    #       ignore_errors: yes
 
-        - name: Display MinIO deployment failure diagnostics
-          debug:
-            msg:
-              - "=========================================="
-              - "MinIO Deployment FAILED"
-              - "=========================================="
-              - "Error: {{ minio_deploy_result.msg | default('Unknown error') }}"
-              - "Pods in {{ minio_namespace }}:"
-              - "{{ minio_pods_status.resources | default([]) | map(attribute='metadata.name') | list }}"
-              - "=========================================="
+    #     - name: Display MinIO deployment failure diagnostics
+    #       debug:
+    #         msg:
+    #           - "=========================================="
+    #           - "MinIO Deployment FAILED"
+    #           - "=========================================="
+    #           - "Error: {{ minio_deploy_result.msg | default('Unknown error') }}"
+    #           - "Pods in {{ minio_namespace }}:"
+    #           - "{{ minio_pods_status.resources | default([]) | map(attribute='metadata.name') | list }}"
+    #           - "=========================================="
 
-        - name: Fail with diagnostic information
-          fail:
-            msg: "MinIO deployment failed. Check logs with: kubectl logs -n {{ minio_namespace }} -l app=minio"
+    #     - name: Fail with diagnostic information
+    #       fail:
+    #         msg: "MinIO deployment failed. Check logs with: kubectl logs -n {{ minio_namespace }} -l app=minio"
 
-    - name: Verify MinIO namespace exists
-      kubernetes.core.k8s_info:
-        kind: Namespace
-        name: "{{ minio_namespace }}"
-        kubeconfig: "{{ kubeconfig_path }}"
-      register: minio_namespace_check
-      failed_when: minio_namespace_check.resources | length == 0
+    # - name: Verify MinIO namespace exists
+    #   kubernetes.core.k8s_info:
+    #     kind: Namespace
+    #     name: "{{ minio_namespace }}"
+    #     kubeconfig: "{{ kubeconfig_path }}"
+    #   register: minio_namespace_check
+    #   failed_when: minio_namespace_check.resources | length == 0
 
-    - name: Wait for MinIO pods to be ready
-      kubernetes.core.k8s_info:
-        kind: Pod
-        namespace: "{{ minio_namespace }}"
-        label_selectors:
-          - "app=minio"
-        kubeconfig: "{{ kubeconfig_path }}"
-        wait: yes
-        wait_condition:
-          type: Ready
-          status: "True"
-        wait_timeout: 300
-      register: minio_pods_ready
+    # - name: Wait for MinIO pods to be ready
+    #   kubernetes.core.k8s_info:
+    #     kind: Pod
+    #     namespace: "{{ minio_namespace }}"
+    #     label_selectors:
+    #       - "app=minio"
+    #     kubeconfig: "{{ kubeconfig_path }}"
+    #     wait: yes
+    #     wait_condition:
+    #       type: Ready
+    #       status: "True"
+    #     wait_timeout: 300
+    #   register: minio_pods_ready
 
-    - name: Verify MinIO ingress has IP address assigned
-      kubernetes.core.k8s_info:
-        kind: Ingress
-        namespace: "{{ minio_namespace }}"
-        kubeconfig: "{{ kubeconfig_path }}"
-      register: minio_ingress_check
-      retries: 10
-      delay: 6
-      until: >
-        minio_ingress_check.resources | length > 0 and
-        minio_ingress_check.resources[0].status.loadBalancer.ingress is defined and
-        minio_ingress_check.resources[0].status.loadBalancer.ingress | length > 0
+    # - name: Verify MinIO ingress has IP address assigned
+    #   kubernetes.core.k8s_info:
+    #     kind: Ingress
+    #     namespace: "{{ minio_namespace }}"
+    #     kubeconfig: "{{ kubeconfig_path }}"
+    #   register: minio_ingress_check
+    #   retries: 10
+    #   delay: 6
+    #   until: >
+    #     minio_ingress_check.resources | length > 0 and
+    #     minio_ingress_check.resources[0].status.loadBalancer.ingress is defined and
+    #     minio_ingress_check.resources[0].status.loadBalancer.ingress | length > 0
 
-    - name: Display MinIO deployment status
-      debug:
-        msg: "MinIO deployed successfully in namespace {{ minio_namespace }} at minio.{{ domain }} - IP: {{ minio_ingress_check.resources[0].status.loadBalancer.ingress[0].ip | default('pending') }}"
+    # - name: Display MinIO deployment status
+    #   debug:
+    #     msg: "MinIO deployed successfully in namespace {{ minio_namespace }} at minio.{{ domain }} - IP: {{ minio_ingress_check.resources[0].status.loadBalancer.ingress[0].ip | default('pending') }}"
 
     # ClearML - MLOps platform
-    - name: Add ClearML Helm repository
-      kubernetes.core.helm_repository:
-        name: clearml
-        repo_url: https://allegroai.github.io/clearml-helm-charts
-        state: present
+    # - name: Add ClearML Helm repository
+    #   kubernetes.core.helm_repository:
+    #     name: clearml
+    #     repo_url: https://clearml.github.io/clearml-helm-charts
+    #     state: present
 
-    - name: Deploy ClearML (MLOps platform)
-      kubernetes.core.helm:
-        name: clearml
-        chart_ref: clearml/clearml
-        chart_version: "{{ clearml_version }}"
-        release_namespace: "{{ clearml_namespace }}"
-        create_namespace: yes
-        kubeconfig: "{{ kubeconfig_path }}"
-        state: present
-        wait: yes
-        wait_timeout: 10m
-        values:
-          persistence:
-            enabled: true
-            storageClass: "longhorn"
-          mongodb:
-            persistence:
-              size: "{{ clearml_storage_size }}"
-          elasticsearch:
-            persistence:
-              size: "{{ clearml_storage_size }}"
-          redis:
-            master:
-              persistence:
-                size: "5Gi"
-          webserver:
-            service:
-              type: ClusterIP
-            ingress:
-              enabled: true
-              ingressClassName: "nginx"
-              hostname: "clearml.{{ domain }}"
-              annotations:
-                cert-manager.io/cluster-issuer: "letsencrypt-staging"
-          apiserver:
-            service:
-              type: ClusterIP
-            ingress:
-              enabled: true
-              ingressClassName: "nginx"
-              hostname: "api.clearml.{{ domain }}"
-              annotations:
-                cert-manager.io/cluster-issuer: "letsencrypt-staging"
-          fileserver:
-            service:
-              type: ClusterIP
-            ingress:
-              enabled: true
-              ingressClassName: "nginx"
-              hostname: "files.clearml.{{ domain }}"
-              annotations:
-                cert-manager.io/cluster-issuer: "letsencrypt-staging"
-      register: clearml_deploy_result
-      failed_when: false
+    # - name: Deploy ClearML (MLOps platform)
+    #   kubernetes.core.helm:
+    #     name: clearml
+    #     chart_ref: clearml/clearml
+    #     chart_version: "{{ clearml_version }}"
+    #     release_namespace: "{{ clearml_namespace }}"
+    #     create_namespace: yes
+    #     kubeconfig: "{{ kubeconfig_path }}"
+    #     state: present
+    #     wait: yes
+    #     wait_timeout: 10m
+    #     values:
+    #       persistence:
+    #         enabled: true
+    #         storageClass: "longhorn"
+    #       mongodb:
+    #         persistence:
+    #           size: "{{ clearml_storage_size }}"
+    #       elasticsearch:
+    #         persistence:
+    #           size: "{{ clearml_storage_size }}"
+    #       redis:
+    #         master:
+    #           persistence:
+    #             size: "5Gi"
+    #       webserver:
+    #         service:
+    #           type: ClusterIP
+    #         ingress:
+    #           enabled: true
+    #           ingressClassName: "nginx"
+    #           hostname: "clearml.{{ domain }}"
+    #           annotations:
+    #             cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    #       apiserver:
+    #         service:
+    #           type: ClusterIP
+    #         ingress:
+    #           enabled: true
+    #           ingressClassName: "nginx"
+    #           hostname: "api.clearml.{{ domain }}"
+    #           annotations:
+    #             cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    #       fileserver:
+    #         service:
+    #           type: ClusterIP
+    #         ingress:
+    #           enabled: true
+    #           ingressClassName: "nginx"
+    #           hostname: "files.clearml.{{ domain }}"
+    #           annotations:
+    #             cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    #   register: clearml_deploy_result
+    #   failed_when: false
 
-    - name: Handle ClearML deployment failure
-      when: clearml_deploy_result.failed | default(false)
-      block:
-        - name: Get ClearML pods status for diagnostics
-          kubernetes.core.k8s_info:
-            kind: Pod
-            namespace: "{{ clearml_namespace }}"
-            kubeconfig: "{{ kubeconfig_path }}"
-          register: clearml_pods_status
-          ignore_errors: yes
+    # - name: Handle ClearML deployment failure
+    #   when: clearml_deploy_result.failed | default(false)
+    #   block:
+    #     - name: Get ClearML pods status for diagnostics
+    #       kubernetes.core.k8s_info:
+    #         kind: Pod
+    #         namespace: "{{ clearml_namespace }}"
+    #         kubeconfig: "{{ kubeconfig_path }}"
+    #       register: clearml_pods_status
+    #       ignore_errors: yes
 
-        - name: Display ClearML deployment failure diagnostics
-          debug:
-            msg:
-              - "=========================================="
-              - "ClearML Deployment FAILED"
-              - "=========================================="
-              - "Error: {{ clearml_deploy_result.msg | default('Unknown error') }}"
-              - "Pods in {{ clearml_namespace }}:"
-              - "{{ clearml_pods_status.resources | default([]) | map(attribute='metadata.name') | list }}"
-              - "=========================================="
+    #     - name: Display ClearML deployment failure diagnostics
+    #       debug:
+    #         msg:
+    #           - "=========================================="
+    #           - "ClearML Deployment FAILED"
+    #           - "=========================================="
+    #           - "Error: {{ clearml_deploy_result.msg | default('Unknown error') }}"
+    #           - "Pods in {{ clearml_namespace }}:"
+    #           - "{{ clearml_pods_status.resources | default([]) | map(attribute='metadata.name') | list }}"
+    #           - "=========================================="
 
-        - name: Fail with diagnostic information
-          fail:
-            msg: "ClearML deployment failed. Check logs with: kubectl logs -n {{ clearml_namespace }} -l app.kubernetes.io/name=clearml"
+    #     - name: Fail with diagnostic information
+    #       fail:
+    #         msg: "ClearML deployment failed. Check logs with: kubectl logs -n {{ clearml_namespace }} -l app.kubernetes.io/name=clearml"
 
-    - name: Verify ClearML namespace exists
-      kubernetes.core.k8s_info:
-        kind: Namespace
-        name: "{{ clearml_namespace }}"
-        kubeconfig: "{{ kubeconfig_path }}"
-      register: clearml_namespace_check
-      failed_when: clearml_namespace_check.resources | length == 0
+    # - name: Verify ClearML namespace exists
+    #   kubernetes.core.k8s_info:
+    #     kind: Namespace
+    #     name: "{{ clearml_namespace }}"
+    #     kubeconfig: "{{ kubeconfig_path }}"
+    #   register: clearml_namespace_check
+    #   failed_when: clearml_namespace_check.resources | length == 0
 
-    - name: Wait for ClearML webserver pods to be ready
-      kubernetes.core.k8s_info:
-        kind: Pod
-        namespace: "{{ clearml_namespace }}"
-        label_selectors:
-          - "app.kubernetes.io/component=webserver"
-        kubeconfig: "{{ kubeconfig_path }}"
-        wait: yes
-        wait_condition:
-          type: Ready
-          status: "True"
-        wait_timeout: 600
-      register: clearml_webserver_ready
+    # - name: Wait for ClearML webserver pods to be ready
+    #   kubernetes.core.k8s_info:
+    #     kind: Pod
+    #     namespace: "{{ clearml_namespace }}"
+    #     label_selectors:
+    #       - "app.kubernetes.io/component=webserver"
+    #     kubeconfig: "{{ kubeconfig_path }}"
+    #     wait: yes
+    #     wait_condition:
+    #       type: Ready
+    #       status: "True"
+    #     wait_timeout: 600
+    #   register: clearml_webserver_ready
 
-    - name: Wait for ClearML apiserver pods to be ready
-      kubernetes.core.k8s_info:
-        kind: Pod
-        namespace: "{{ clearml_namespace }}"
-        label_selectors:
-          - "app.kubernetes.io/component=apiserver"
-        kubeconfig: "{{ kubeconfig_path }}"
-        wait: yes
-        wait_condition:
-          type: Ready
-          status: "True"
-        wait_timeout: 600
-      register: clearml_apiserver_ready
+    # - name: Wait for ClearML apiserver pods to be ready
+    #   kubernetes.core.k8s_info:
+    #     kind: Pod
+    #     namespace: "{{ clearml_namespace }}"
+    #     label_selectors:
+    #       - "app.kubernetes.io/component=apiserver"
+    #     kubeconfig: "{{ kubeconfig_path }}"
+    #     wait: yes
+    #     wait_condition:
+    #       type: Ready
+    #       status: "True"
+    #     wait_timeout: 600
+    #   register: clearml_apiserver_ready
 
-    - name: Wait for ClearML fileserver pods to be ready
-      kubernetes.core.k8s_info:
-        kind: Pod
-        namespace: "{{ clearml_namespace }}"
-        label_selectors:
-          - "app.kubernetes.io/component=fileserver"
-        kubeconfig: "{{ kubeconfig_path }}"
-        wait: yes
-        wait_condition:
-          type: Ready
-          status: "True"
-        wait_timeout: 600
-      register: clearml_fileserver_ready
+    # - name: Wait for ClearML fileserver pods to be ready
+    #   kubernetes.core.k8s_info:
+    #     kind: Pod
+    #     namespace: "{{ clearml_namespace }}"
+    #     label_selectors:
+    #       - "app.kubernetes.io/component=fileserver"
+    #     kubeconfig: "{{ kubeconfig_path }}"
+    #     wait: yes
+    #     wait_condition:
+    #       type: Ready
+    #       status: "True"
+    #     wait_timeout: 600
+    #   register: clearml_fileserver_ready
 
-    - name: Verify ClearML ingress resources have IP addresses assigned
-      kubernetes.core.k8s_info:
-        kind: Ingress
-        namespace: "{{ clearml_namespace }}"
-        kubeconfig: "{{ kubeconfig_path }}"
-      register: clearml_ingress_check
-      retries: 10
-      delay: 6
-      until: >
-        clearml_ingress_check.resources | length > 0 and
-        clearml_ingress_check.resources | selectattr('status.loadBalancer.ingress', 'defined') | list | length == clearml_ingress_check.resources | length
+    # - name: Verify ClearML ingress resources have IP addresses assigned
+    #   kubernetes.core.k8s_info:
+    #     kind: Ingress
+    #     namespace: "{{ clearml_namespace }}"
+    #     kubeconfig: "{{ kubeconfig_path }}"
+    #   register: clearml_ingress_check
+    #   retries: 10
+    #   delay: 6
+    #   until: >
+    #     clearml_ingress_check.resources | length > 0 and
+    #     clearml_ingress_check.resources | selectattr('status.loadBalancer.ingress', 'defined') | list | length == clearml_ingress_check.resources | length
 
-    - name: Display ClearML deployment status
-      debug:
-        msg:
-          - "ClearML deployed successfully in namespace {{ clearml_namespace }}"
-          - "Webserver: clearml.{{ domain }}"
-          - "API Server: api.clearml.{{ domain }}"
-          - "File Server: files.clearml.{{ domain }}"
-          - "All ClearML pods are ready"
+    # - name: Display ClearML deployment status
+    #   debug:
+    #     msg:
+    #       - "ClearML deployed successfully in namespace {{ clearml_namespace }}"
+    #       - "Webserver: clearml.{{ domain }}"
+    #       - "API Server: api.clearml.{{ domain }}"
+    #       - "File Server: files.clearml.{{ domain }}"
+    #       - "All ClearML pods are ready"
 
-    # n8n - Workflow automation
-    - name: Add n8n Helm repository
-      kubernetes.core.helm_repository:
-        name: n8n
-        repo_url: https://helm.n8n.io
-        state: present
+    # # n8n - Workflow automation
+    # - name: Add n8n Helm repository
+    #   kubernetes.core.helm_repository:
+    #     name: n8n
+    #     repo_url: https://helm.n8n.io
+    #     state: present
 
-    - name: Deploy n8n (workflow automation)
-      kubernetes.core.helm:
-        name: n8n
-        chart_ref: n8n/n8n
-        chart_version: "{{ n8n_version }}"
-        release_namespace: "{{ n8n_namespace }}"
-        create_namespace: yes
-        kubeconfig: "{{ kubeconfig_path }}"
-        state: present
-        wait: yes
-        wait_timeout: 5m
-        values:
-          config:
-            basicAuth:
-              enabled: true
-              user: "{{ n8n_admin_user }}"
-              password: "{{ n8n_admin_pass }}"
-          persistence:
-            enabled: true
-            storageClass: "longhorn"
-            size: "{{ n8n_storage_size }}"
-          service:
-            type: ClusterIP
-          ingress:
-            enabled: true
-            className: "nginx"
-            hosts:
-              - host: "n8n.{{ domain }}"
-                paths:
-                  - path: /
-                    pathType: Prefix
-            annotations:
-              cert-manager.io/cluster-issuer: "letsencrypt-staging"
-      register: n8n_deploy_result
-      failed_when: false
+    # - name: Deploy n8n (workflow automation)
+    #   kubernetes.core.helm:
+    #     name: n8n
+    #     chart_ref: n8n/n8n
+    #     chart_version: "{{ n8n_version }}"
+    #     release_namespace: "{{ n8n_namespace }}"
+    #     create_namespace: yes
+    #     kubeconfig: "{{ kubeconfig_path }}"
+    #     state: present
+    #     wait: yes
+    #     wait_timeout: 5m
+    #     values:
+    #       config:
+    #         basicAuth:
+    #           enabled: true
+    #           user: "{{ n8n_admin_user }}"
+    #           password: "{{ n8n_admin_pass }}"
+    #       persistence:
+    #         enabled: true
+    #         storageClass: "longhorn"
+    #         size: "{{ n8n_storage_size }}"
+    #       service:
+    #         type: ClusterIP
+    #       ingress:
+    #         enabled: true
+    #         className: "nginx"
+    #         hosts:
+    #           - host: "n8n.{{ domain }}"
+    #             paths:
+    #               - path: /
+    #                 pathType: Prefix
+    #         annotations:
+    #           cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    #   register: n8n_deploy_result
+    #   failed_when: false
 
-    - name: Handle n8n deployment failure
-      when: n8n_deploy_result.failed | default(false)
-      block:
-        - name: Get n8n pods status for diagnostics
-          kubernetes.core.k8s_info:
-            kind: Pod
-            namespace: "{{ n8n_namespace }}"
-            kubeconfig: "{{ kubeconfig_path }}"
-          register: n8n_pods_status
-          ignore_errors: yes
+    # - name: Handle n8n deployment failure
+    #   when: n8n_deploy_result.failed | default(false)
+    #   block:
+    #     - name: Get n8n pods status for diagnostics
+    #       kubernetes.core.k8s_info:
+    #         kind: Pod
+    #         namespace: "{{ n8n_namespace }}"
+    #         kubeconfig: "{{ kubeconfig_path }}"
+    #       register: n8n_pods_status
+    #       ignore_errors: yes
 
-        - name: Display n8n deployment failure diagnostics
-          debug:
-            msg:
-              - "=========================================="
-              - "n8n Deployment FAILED"
-              - "=========================================="
-              - "Error: {{ n8n_deploy_result.msg | default('Unknown error') }}"
-              - "Pods in {{ n8n_namespace }}:"
-              - "{{ n8n_pods_status.resources | default([]) | map(attribute='metadata.name') | list }}"
-              - "=========================================="
+    #     - name: Display n8n deployment failure diagnostics
+    #       debug:
+    #         msg:
+    #           - "=========================================="
+    #           - "n8n Deployment FAILED"
+    #           - "=========================================="
+    #           - "Error: {{ n8n_deploy_result.msg | default('Unknown error') }}"
+    #           - "Pods in {{ n8n_namespace }}:"
+    #           - "{{ n8n_pods_status.resources | default([]) | map(attribute='metadata.name') | list }}"
+    #           - "=========================================="
 
-        - name: Fail with diagnostic information
-          fail:
-            msg: "n8n deployment failed. Check logs with: kubectl logs -n {{ n8n_namespace }} -l app.kubernetes.io/name=n8n"
+    #     - name: Fail with diagnostic information
+    #       fail:
+    #         msg: "n8n deployment failed. Check logs with: kubectl logs -n {{ n8n_namespace }} -l app.kubernetes.io/name=n8n"
 
-    - name: Verify n8n namespace exists
-      kubernetes.core.k8s_info:
-        kind: Namespace
-        name: "{{ n8n_namespace }}"
-        kubeconfig: "{{ kubeconfig_path }}"
-      register: n8n_namespace_check
-      failed_when: n8n_namespace_check.resources | length == 0
+    # - name: Verify n8n namespace exists
+    #   kubernetes.core.k8s_info:
+    #     kind: Namespace
+    #     name: "{{ n8n_namespace }}"
+    #     kubeconfig: "{{ kubeconfig_path }}"
+    #   register: n8n_namespace_check
+    #   failed_when: n8n_namespace_check.resources | length == 0
 
-    - name: Wait for n8n pods to be ready
-      kubernetes.core.k8s_info:
-        kind: Pod
-        namespace: "{{ n8n_namespace }}"
-        label_selectors:
-          - "app.kubernetes.io/name=n8n"
-        kubeconfig: "{{ kubeconfig_path }}"
-        wait: yes
-        wait_condition:
-          type: Ready
-          status: "True"
-        wait_timeout: 300
-      register: n8n_pods_ready
+    # - name: Wait for n8n pods to be ready
+    #   kubernetes.core.k8s_info:
+    #     kind: Pod
+    #     namespace: "{{ n8n_namespace }}"
+    #     label_selectors:
+    #       - "app.kubernetes.io/name=n8n"
+    #     kubeconfig: "{{ kubeconfig_path }}"
+    #     wait: yes
+    #     wait_condition:
+    #       type: Ready
+    #       status: "True"
+    #     wait_timeout: 300
+    #   register: n8n_pods_ready
 
-    - name: Verify n8n ingress has IP address assigned
-      kubernetes.core.k8s_info:
-        kind: Ingress
-        namespace: "{{ n8n_namespace }}"
-        kubeconfig: "{{ kubeconfig_path }}"
-      register: n8n_ingress_check
-      retries: 10
-      delay: 6
-      until: >
-        n8n_ingress_check.resources | length > 0 and
-        n8n_ingress_check.resources[0].status.loadBalancer.ingress is defined and
-        n8n_ingress_check.resources[0].status.loadBalancer.ingress | length > 0
+    # - name: Verify n8n ingress has IP address assigned
+    #   kubernetes.core.k8s_info:
+    #     kind: Ingress
+    #     namespace: "{{ n8n_namespace }}"
+    #     kubeconfig: "{{ kubeconfig_path }}"
+    #   register: n8n_ingress_check
+    #   retries: 10
+    #   delay: 6
+    #   until: >
+    #     n8n_ingress_check.resources | length > 0 and
+    #     n8n_ingress_check.resources[0].status.loadBalancer.ingress is defined and
+    #     n8n_ingress_check.resources[0].status.loadBalancer.ingress | length > 0
 
-    - name: Display n8n deployment status
-      debug:
-        msg: "n8n deployed successfully in namespace {{ n8n_namespace }} at n8n.{{ domain }} - IP: {{ n8n_ingress_check.resources[0].status.loadBalancer.ingress[0].ip | default('pending') }}"
+    # - name: Display n8n deployment status
+    #   debug:
+    #     msg: "n8n deployed successfully in namespace {{ n8n_namespace }} at n8n.{{ domain }} - IP: {{ n8n_ingress_check.resources[0].status.loadBalancer.ingress[0].ip | default('pending') }}"
 
-    - name: Verify all application namespaces exist
-      kubernetes.core.k8s_info:
-        kind: Namespace
-        name: "{{ item }}"
-        kubeconfig: "{{ kubeconfig_path }}"
-      register: app_namespace_verification
-      failed_when: app_namespace_verification.resources | length == 0
-      loop:
-        - "{{ minio_namespace }}"
-        - "{{ clearml_namespace }}"
-        - "{{ n8n_namespace }}"
+    # - name: Verify all application namespaces exist
+    #   kubernetes.core.k8s_info:
+    #     kind: Namespace
+    #     name: "{{ item }}"
+    #     kubeconfig: "{{ kubeconfig_path }}"
+    #   register: app_namespace_verification
+    #   failed_when: app_namespace_verification.resources | length == 0
+    #   loop:
+    #     - "{{ minio_namespace }}"
+    #     - "{{ clearml_namespace }}"
+    #     - "{{ n8n_namespace }}"
 
-    - name: Get all ingress resources with IP addresses
-      kubernetes.core.k8s_info:
-        kind: Ingress
-        namespace: "{{ item }}"
-        kubeconfig: "{{ kubeconfig_path }}"
-      register: all_ingress_resources
-      loop:
-        - "{{ minio_namespace }}"
-        - "{{ clearml_namespace }}"
-        - "{{ n8n_namespace }}"
+    # - name: Get all ingress resources with IP addresses
+    #   kubernetes.core.k8s_info:
+    #     kind: Ingress
+    #     namespace: "{{ item }}"
+    #     kubeconfig: "{{ kubeconfig_path }}"
+    #   register: all_ingress_resources
+    #   loop:
+    #     - "{{ minio_namespace }}"
+    #     - "{{ clearml_namespace }}"
+    #     - "{{ n8n_namespace }}"
 
-    - name: Extract ingress IP addresses
-      set_fact:
-        minio_ip: "{{ minio_ingress_check.resources[0].status.loadBalancer.ingress[0].ip | default('pending') }}"
-        clearml_ips: "{{ clearml_ingress_check.resources | map(attribute='status.loadBalancer.ingress') | map('first') | map(attribute='ip') | list }}"
-        n8n_ip: "{{ n8n_ingress_check.resources[0].status.loadBalancer.ingress[0].ip | default('pending') }}"
+    # - name: Extract ingress IP addresses
+    #   set_fact:
+    #     minio_ip: "{{ minio_ingress_check.resources[0].status.loadBalancer.ingress[0].ip | default('pending') }}"
+    #     clearml_ips: "{{ clearml_ingress_check.resources | map(attribute='status.loadBalancer.ingress') | map('first') | map(attribute='ip') | list }}"
+    #     n8n_ip: "{{ n8n_ingress_check.resources[0].status.loadBalancer.ingress[0].ip | default('pending') }}"
 
-    - name: Application deployment summary
-      debug:
-        msg:
-          - "=========================================="
-          - "Application Services Deployment Complete"
-          - "=========================================="
-          - "MinIO: https://minio.{{ domain }}"
-          - "  User: {{ minio_root_user }}"
-          - "  IP: {{ minio_ip }}"
-          - "ClearML:"
-          - "  Webserver: https://clearml.{{ domain }}"
-          - "  API Server: https://api.clearml.{{ domain }}"
-          - "  File Server: https://files.clearml.{{ domain }}"
-          - "  IPs: {{ clearml_ips | join(', ') }}"
-          - "n8n: https://n8n.{{ domain }}"
-          - "  User: {{ n8n_admin_user }}"
-          - "  IP: {{ n8n_ip }}"
-          - "=========================================="
-          - "All application namespaces verified"
-          - "All application pods are ready"
-          - "All ingress resources have IP addresses assigned"
-          - "=========================================="
-          - "Note: Using Let's Encrypt staging certificates"
-          - "Add DNS entries or /etc/hosts for *.{{ domain }}"
-          - "=========================================="
+    # - name: Application deployment summary
+    #   debug:
+    #     msg:
+    #       - "=========================================="
+    #       - "Application Services Deployment Complete"
+    #       - "=========================================="
+    #       - "MinIO: https://minio.{{ domain }}"
+    #       - "  User: {{ minio_root_user }}"
+    #       - "  IP: {{ minio_ip }}"
+    #       - "ClearML:"
+    #       - "  Webserver: https://clearml.{{ domain }}"
+    #       - "  API Server: https://api.clearml.{{ domain }}"
+    #       - "  File Server: https://files.clearml.{{ domain }}"
+    #       - "  IPs: {{ clearml_ips | join(', ') }}"
+    #       - "n8n: https://n8n.{{ domain }}"
+    #       - "  User: {{ n8n_admin_user }}"
+    #       - "  IP: {{ n8n_ip }}"
+    #       - "=========================================="
+    #       - "All application namespaces verified"
+    #       - "All application pods are ready"
+    #       - "All ingress resources have IP addresses assigned"
+    #       - "=========================================="
+    #       - "Note: Using Let's Encrypt staging certificates"
+    #       - "Add DNS entries or /etc/hosts for *.{{ domain }}"
+    #       - "=========================================="

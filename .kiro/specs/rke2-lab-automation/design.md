@@ -27,7 +27,7 @@ The automation follows infrastructure-as-code principles, using declarative conf
 │                    Target Infrastructure (5 Nodes)           │
 │                                                              │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐                 │
-│  │ Node-1   │  │ Node-2   │  │ Node-3   │                 │
+│  │ opt1   │  │ opt2   │  │ opt3   │                 │
 │  │ (Server) │  │ (Server) │  │ (Server) │                 │
 │  │          │  │          │  │          │                 │
 │  │ RKE2     │  │ RKE2     │  │ RKE2     │                 │
@@ -36,7 +36,7 @@ The automation follows infrastructure-as-code principles, using declarative conf
 │  └──────────┘  └──────────┘  └──────────┘                 │
 │                                                              │
 │  ┌──────────┐  ┌──────────┐                                │
-│  │ Node-4   │  │ Node-5   │                                │
+│  │ opt4   │  │ opt5   │                                │
 │  │ (Agent)  │  │ (Agent)  │                                │
 │  │          │  │          │                                │
 │  │ RKE2     │  │ RKE2     │                                │
@@ -115,17 +115,17 @@ all:
       children:
         rke2_servers:
           hosts:
-            node-1:
+            opt1:
               ansible_host: <server1_ip>
-            node-2:
+            opt2:
               ansible_host: <server2_ip>
-            node-3:
+            opt3:
               ansible_host: <server3_ip>
         rke2_agents:
           hosts:
-            node-4:
+            opt4:
               ansible_host: <agent1_ip>
-            node-5:
+            opt5:
               ansible_host: <agent2_ip>
   vars:
     ansible_user: ubuntu
@@ -268,7 +268,7 @@ become_user = root
 - name: Remove swap from fstab
   lineinfile:
     path: /etc/fstab
-    regexp: '.*swap.*'
+    regexp: ".*swap.*"
     state: absent
 
 - name: Verify Ubuntu 24.04 LTS
@@ -666,7 +666,7 @@ Node:
   role: enum [server, agent]
 
 Cluster:
-  nodes: list[Node]  # 5 nodes: 3 servers + 2 agents
+  nodes: list[Node] # 5 nodes: 3 servers + 2 agents
   rke2_version: string
   server_config: dict
   metallb_ip_range: string
@@ -679,13 +679,13 @@ Cluster:
 
 ```yaml
 ServerConfig:
-  disable: list[string]  # Services to disable (e.g., rke2-service-lb)
-  tls-san: list[string]  # TLS SANs for all server IPs (required for HA)
-  token: string          # Shared cluster token (auto-generated)
+  disable: list[string] # Services to disable (e.g., rke2-service-lb)
+  tls-san: list[string] # TLS SANs for all server IPs (required for HA)
+  token: string # Shared cluster token (auto-generated)
 
 AgentConfig:
-  server: string         # Server URL (auto-generated)
-  token: string          # Join token (auto-generated)
+  server: string # Server URL (auto-generated)
+  token: string # Join token (auto-generated)
 ```
 
 ### MetalLB Configuration Model
@@ -698,7 +698,7 @@ IPAddressPool:
     name: string
     namespace: string
   spec:
-    addresses: list[string]  # CIDR or range notation (172.16.86.x)
+    addresses: list[string] # CIDR or range notation (172.16.86.x)
 
 L2Advertisement:
   apiVersion: metallb.io/v1beta1
@@ -720,14 +720,14 @@ ClusterIssuer:
     name: string
   spec:
     acme:
-      server: string  # Let's Encrypt staging/production URL
+      server: string # Let's Encrypt staging/production URL
       email: string
       privateKeySecretRef:
         name: string
       solvers:
         - http01:
             ingress:
-              class: string  # nginx
+              class: string # nginx
 ```
 
 ### Application Ingress Model
@@ -736,7 +736,7 @@ ClusterIssuer:
 Ingress:
   enabled: true
   ingressClassName: "nginx"
-  hosts: list[string]  # e.g., ["minio.ljf.home"]
+  hosts: list[string] # e.g., ["minio.ljf.home"]
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-staging"
 ```
@@ -1076,12 +1076,13 @@ Add entries to `/etc/hosts` on client machines:
    ```bash
    # Install Ansible
    pip install ansible
-   
+
    # Install dependencies
    ansible-galaxy install -r requirements.yml
    ```
 
 2. **Configure Inventory**:
+
    - Edit `inventory.yml` with 5 node IP addresses (3 servers + 2 agents)
    - Set MetalLB IP range (172.16.86.x)
    - Configure domain (ljf.home)
@@ -1097,10 +1098,10 @@ Add entries to `/etc/hosts` on client machines:
    vault_minio_root_pass: "your-secure-password"
    vault_n8n_admin_pass: "your-secure-password"
    EOF
-   
+
    # Encrypt the file with Ansible Vault
    ansible-vault encrypt vars/secrets.yml
-   
+
    # File is now encrypted and safe to commit to Git
    ```
 

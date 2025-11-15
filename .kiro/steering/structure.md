@@ -53,6 +53,7 @@ k8s-lab/
 ### Roles
 
 Each role follows standard Ansible structure:
+
 - `tasks/main.yml`: Main task list
 - `handlers/main.yml`: Event handlers (service restarts, etc.)
 - `templates/`: Jinja2 templates for configuration files
@@ -75,7 +76,7 @@ Each role follows standard Ansible structure:
 ## Configuration Management
 
 - **Inventory variables**: Node IPs, MetalLB IP range
-- **Host variables**: Node-specific settings (hostvars)
+- **Host variables**: optspecific settings (hostvars)
 - **Group variables**: Shared settings across node groups
 - **Template variables**: Dynamic configuration via Jinja2
 

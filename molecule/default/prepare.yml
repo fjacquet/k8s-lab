@@ -1,0 +1,12 @@
+install:
+  - name: Install dependencies
+    package:
+      name: "{{ item }}"
+      state: present
+    loop:
+      - python3
+      - python3-pip
+      - ansible
+      - molecule
+      - docker
+      - docker-compose

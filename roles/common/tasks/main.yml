@@ -19,7 +19,24 @@
       - curl
       - vim
       - ca-certificates
+      - python3-pip
+      - python3-kubernetes
+      - git
+      - keepalived  # Required for RKE2 HA mode
     state: present
+
+- name: Download Helm installation script
+  get_url:
+    url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+    dest: /tmp/get_helm.sh
+    mode: '0700'
+  when: inventory_hostname in groups['masters']
+
+- name: Install Helm
+  shell: /tmp/get_helm.sh
+  when: inventory_hostname in groups['masters']
+  register: helm_install_result
+  changed_when: "'Helm' in helm_install_result.stdout"
 
 - name: Enable and start iscsid service
   systemd:
@@ -36,3 +53,34 @@
     path: /etc/fstab
     regexp: '.*swap.*'
     state: absent
+
+- name: Install resolvconf package
+  apt:
+    name: resolvconf
+    state: present
+
+- name: Create resolvconf head directory
+  file:
+    path: /etc/resolvconf/resolv.conf.d
+    state: directory
+    mode: '0755'
+
+- name: Configure DNS nameserver in resolvconf
+  lineinfile:
+    path: /etc/resolvconf/resolv.conf.d/head
+    line: "nameserver {{ dns_nameserver }}"
+    create: yes
+    mode: '0644'
+  notify: update resolvconf
+
+- name: Configure DNS search domain in resolvconf
+  lineinfile:
+    path: /etc/resolvconf/resolv.conf.d/head
+    line: "search {{ dns_domain }}"
+    create: yes
+    mode: '0644'
+  notify: update resolvconf
+
+- name: Update resolvconf immediately
+  command: resolvconf -u
+  changed_when: false

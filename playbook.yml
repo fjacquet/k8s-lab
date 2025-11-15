@@ -5,28 +5,36 @@
 # application services (MinIO, ClearML, n8n)
 
 - name: Prepare all nodes with prerequisites
-  hosts: rke2_cluster
+  hosts: k8s_cluster
   become: yes
+  vars_files:
+    - vars/secrets.yml
   roles:
     - common
 
 - name: Deploy RKE2 HA cluster
-  hosts: rke2_cluster
+  hosts: k8s_cluster
   become: yes
+  vars_files:
+    - vars/secrets.yml
   roles:
     - role: lablabs.rke2
 
 - name: Deploy infrastructure services
-  hosts: rke2_servers[0]
+  hosts: masters[0]
   become: yes
+  vars_files:
+    - vars/secrets.yml
   roles:
     - role: k8s_apps
       vars:
         deployment_phase: infrastructure
 
 - name: Deploy application services
-  hosts: rke2_servers[0]
+  hosts: masters[0]
   become: yes
+  vars_files:
+    - vars/secrets.yml
   roles:
     - role: k8s_apps
       vars:

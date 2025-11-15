@@ -1,0 +1,27 @@
+driver:
+  name: docker
+
+provisioner:
+  name: ansible
+  playbooks:
+    converge: converge.yml
+
+verifier:
+  name: ansible
+  playbooks:
+    verify: verify.yml
+
+platforms:
+  - name: ubuntu:20.04
+    image: ubuntu:20.04
+    command: /bin/bash
+    pre_build_image: true
+
+suites:
+  - name: default
+    converge:
+      - name: "Converge"
+        playbook: converge.yml
+    verify:
+      - name: "Verify"
+        playbook: verify.yml

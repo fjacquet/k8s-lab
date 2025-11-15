@@ -52,9 +52,9 @@ project/
 ```yaml
 all:
   hosts:
-    node-1:
+    opt1:
       ansible_host: 192.168.1.101
-    node-2:
+    opt2:
       ansible_host: 192.168.1.102
   vars:
     ansible_user: ubuntu
@@ -62,10 +62,10 @@ all:
   children:
     servers:
       hosts:
-        node-1:
+        opt1:
     agents:
       hosts:
-        node-2:
+        opt2:
 ```
 
 ## Role Development
@@ -125,7 +125,7 @@ roles/role_name/
 ### Variable Substitution
 
 ```jinja2
-server: https://{{ hostvars['node-1'].ansible_host }}:9345
+server: https://{{ hostvars['opt1'].ansible_host }}:9345
 token: {{ rke2_token }}
 ```
 
@@ -151,11 +151,11 @@ feature: enabled
 2. Inventory file/script group vars
 3. Inventory group_vars/all
 4. Playbook group_vars/all
-5. Inventory group_vars/*
-6. Playbook group_vars/*
+5. Inventory group_vars/\*
+6. Playbook group_vars/\*
 7. Inventory file/script host vars
-8. Inventory host_vars/*
-9. Playbook host_vars/*
+8. Inventory host_vars/\*
+9. Playbook host_vars/\*
 10. Host facts
 11. Play vars
 12. Play vars_prompt

@@ -69,7 +69,7 @@ spec:
   addresses:
     - 192.168.1.200-192.168.1.210
     - 192.168.1.220/32
-  autoAssign: true  # Automatically assign IPs from this pool
+  autoAssign: true # Automatically assign IPs from this pool
 ```
 
 ### L2Advertisement
@@ -87,7 +87,7 @@ spec:
     - default-pool
   nodeSelectors:
     - matchLabels:
-        kubernetes.io/hostname: node-1
+        kubernetes.io/hostname: opt1
 ```
 
 ### BGPAdvertisement
@@ -154,7 +154,7 @@ metadata:
   name: my-service
 spec:
   type: LoadBalancer
-  loadBalancerIP: 192.168.1.200  # Deprecated, use annotations
+  loadBalancerIP: 192.168.1.200 # Deprecated, use annotations
   selector:
     app: my-app
   ports:
@@ -238,20 +238,20 @@ spec:
     - 192.168.2.200-192.168.2.210
 ```
 
-### Node-Specific Advertisements
+### optSpecific Advertisements
 
 ```yaml
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
-  name: node-specific
+  name: optspecific
   namespace: metallb-system
 spec:
   ipAddressPools:
     - default-pool
   nodeSelectors:
     - matchLabels:
-        node-role: edge
+        optrole: edge
 ```
 
 ### Service-Specific Pools

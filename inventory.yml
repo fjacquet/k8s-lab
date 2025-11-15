@@ -1,43 +1,61 @@
 all:
   children:
-    rke2_cluster:
+    k8s_cluster:
       children:
-        rke2_servers:
+        masters:
           hosts:
-            node-1:
-              ansible_host: 172.16.86.101  # Replace with your server 1 IP
-            node-2:
-              ansible_host: 172.16.86.102  # Replace with your server 2 IP
-            node-3:
-              ansible_host: 172.16.86.103  # Replace with your server 3 IP
-        rke2_agents:
+            opt1:
+              ansible_host: 172.16.86.11 # Replace with your server 1 IP
+              rke2_type: server
+            opt2:
+              ansible_host: 172.16.86.12 # Replace with your server 2 IP
+              rke2_type: server
+            opt3:
+              ansible_host: 172.16.86.13 # Replace with your server 3 IP
+              rke2_type: server
+        workers:
           hosts:
-            node-4:
-              ansible_host: 172.16.86.104  # Replace with your agent 1 IP
-            node-5:
-              ansible_host: 172.16.86.105  # Replace with your agent 2 IP
+            opt4:
+              ansible_host: 172.16.86.14 # Replace with your agent 1 IP
+              rke2_type: agent
+            opt5:
+              ansible_host: 172.16.86.15 # Replace with your agent 2 IP
+              rke2_type: agent
   vars:
-    ansible_user: ubuntu
+    ansible_user: fjacquet
     ansible_become: yes
     ansible_python_interpreter: /usr/bin/python3
-    
+
+    # DNS Configuration
+    dns_nameserver: "172.16.86.10"
+    dns_domain: "ljf-home"
+
     # RKE2 Configuration
-    rke2_version: "v1.28.10+rke2r1"
+    rke2_version: "1.33.6+rke2r1"
+    rke2_ha_mode: true
+    rke2_ha_mode_keepalived: true
+    rke2_api_ip: 172.16.86.20  # VIP for HA cluster
+    rke2_token: "{{ vault_rke2_token | default('temporarySecureToken12345') }}"
+    rke2_servers_group_name: masters
+    rke2_agents_group_name: workers
+    
+    # RKE2 server configuration
     rke2_server_config:
       disable:
         - rke2-service-lb
       tls-san:
-        - 172.16.86.101  # Replace with your server IPs
-        - 172.16.86.102
-        - 172.16.86.103
-    
+        - 172.16.86.20  # VIP
+        - 172.16.86.11
+        - 172.16.86.12
+        - 172.16.86.13
+
     # MetalLB Configuration
     metallb_ip_range: "172.16.86.200-172.16.86.210"
-    
+
     # Domain Configuration
     domain: "ljf.home"
     acme_email: "admin@ljf.home"
-    
+
     # Service Credentials (reference encrypted vault variables)
     minio_root_user: "admin"
     minio_root_pass: "{{ vault_minio_root_pass }}"

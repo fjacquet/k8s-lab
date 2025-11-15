@@ -1,13 +1,11 @@
-k8s_apps
-========
+# k8s_apps
 
 Deploys infrastructure and application services to an RKE2 Kubernetes cluster in two phases:
 
 - **Infrastructure Phase**: Longhorn, MetalLB, cert-manager, ingress configuration
 - **Applications Phase**: MinIO, ClearML, n8n
 
-Status
-------
+## Status
 
 ⚠️ **UNDER DEVELOPMENT** - Currently placeholder implementation only.
 
@@ -22,8 +20,7 @@ Status
 - Task 4: Infrastructure services deployment (Longhorn, MetalLB, cert-manager)
 - Task 5: Application services deployment (MinIO, ClearML, n8n)
 
-Requirements
-------------
+## Requirements
 
 - RKE2 cluster already deployed and operational (3 server nodes + 2 agent nodes)
 - `kubernetes.core` Ansible collection installed (>= 3.0.0)
@@ -33,13 +30,12 @@ Requirements
 - Ubuntu 24.04 LTS on all nodes
 - open-iscsi package installed (required for Longhorn)
 
-Role Variables
---------------
+## Role Variables
 
 ### Required Variables
 
 ```yaml
-deployment_phase: infrastructure  # or 'applications' - MUST be set when calling role
+deployment_phase: infrastructure # or 'applications' - MUST be set when calling role
 ```
 
 ### Infrastructure Phase Variables
@@ -97,8 +93,7 @@ kubectl_bin: "/var/lib/rancher/rke2/bin/kubectl"
 helm_bin: "/usr/local/bin/helm"
 ```
 
-Dependencies
-------------
+## Dependencies
 
 - `kubernetes.core` collection (>= 3.0.0)
 - RKE2 cluster must be deployed first (via lablabs.rke2 role)
@@ -108,8 +103,7 @@ Dependencies
 - MetalLB must be deployed before applications (provides LoadBalancer IPs)
 - cert-manager must be deployed before applications (provides TLS certificates)
 
-Example Playbook
-----------------
+## Example Playbook
 
 ```yaml
 ---
@@ -152,17 +146,17 @@ all:
       children:
         rke2_servers:
           hosts:
-            node-1:
+            opt1:
               ansible_host: 172.16.86.101
-            node-2:
+            opt2:
               ansible_host: 172.16.86.102
-            node-3:
+            opt3:
               ansible_host: 172.16.86.103
         rke2_agents:
           hosts:
-            node-4:
+            opt4:
               ansible_host: 172.16.86.104
-            node-5:
+            opt5:
               ansible_host: 172.16.86.105
   vars:
     ansible_user: ubuntu
@@ -176,8 +170,7 @@ all:
     n8n_admin_pass: "{{ vault_n8n_admin_pass }}"
 ```
 
-Current Implementation
-----------------------
+## Current Implementation
 
 The role currently contains only placeholder tasks for development purposes. Full implementation will include:
 
@@ -211,8 +204,7 @@ The role currently contains only placeholder tasks for development purposes. Ful
 - Pod readiness verification before proceeding
 - Namespace and ingress IP verification
 
-Testing
--------
+## Testing
 
 Currently no tests implemented. Will be added as part of task implementation.
 
@@ -225,8 +217,7 @@ Currently no tests implemented. Will be added as part of task implementation.
 - Certificate validation
 - Ingress IP assignment checks
 
-Usage Notes
------------
+## Usage Notes
 
 **Secrets Management:**
 
@@ -268,13 +259,11 @@ Access services via HTTPS:
 
 The role uses Let's Encrypt staging environment by default. Browsers will show certificate warnings (expected behavior). For production, update `certmanager_letsencrypt_server` to use the production URL.
 
-License
--------
+## License
 
 MIT-0
 
-Author Information
-------------------
+## Author Information
 
 RKE2 Lab Automation Project
 

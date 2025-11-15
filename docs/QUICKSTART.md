@@ -56,23 +56,23 @@ all:
       children:
         rke2_servers:
           hosts:
-            node-1:
-              ansible_host: 172.16.86.101  # Your server 1 IP
-            node-2:
-              ansible_host: 172.16.86.102  # Your server 2 IP
-            node-3:
-              ansible_host: 172.16.86.103  # Your server 3 IP
+            opt1:
+              ansible_host: 172.16.86.101 # Your server 1 IP
+            opt2:
+              ansible_host: 172.16.86.102 # Your server 2 IP
+            opt3:
+              ansible_host: 172.16.86.103 # Your server 3 IP
         rke2_agents:
           hosts:
-            node-4:
-              ansible_host: 172.16.86.104  # Your agent 1 IP
-            node-5:
-              ansible_host: 172.16.86.105  # Your agent 2 IP
+            opt4:
+              ansible_host: 172.16.86.104 # Your agent 1 IP
+            opt5:
+              ansible_host: 172.16.86.105 # Your agent 2 IP
   vars:
     ansible_user: ubuntu
-    metallb_ip_range: "172.16.86.200-172.16.86.210"  # Your IP range
-    domain: "ljf.home"  # Your domain
-    acme_email: "admin@ljf.home"  # Your email
+    metallb_ip_range: "172.16.86.200-172.16.86.210" # Your IP range
+    domain: "ljf.home" # Your domain
+    acme_email: "admin@ljf.home" # Your email
 ```
 
 ### 3. Configure Secrets
@@ -119,7 +119,7 @@ The automation executes in four sequential phases:
 - Disables swap (required for Kubernetes)
 - Verifies Ubuntu 24.04 LTS
 
-**Target**: All 5 nodes  
+**Target**: All 5 nodes
 **Duration**: ~2-3 minutes
 
 ### Phase 2: RKE2 Cluster (lablabs.rke2 role)
@@ -129,7 +129,7 @@ The automation executes in four sequential phases:
 - Joins 2 agent nodes to the cluster
 - Disables default rke2-service-lb (replaced by MetalLB)
 
-**Target**: All 5 nodes  
+**Target**: All 5 nodes
 **Duration**: ~5-10 minutes
 
 ### Phase 3: Infrastructure Services (k8s_apps role - infrastructure)
@@ -138,7 +138,7 @@ The automation executes in four sequential phases:
 - **MetalLB**: Bare-metal load balancer with Layer 2 mode
 - **cert-manager**: Automated TLS certificate management
 
-**Target**: First server node (rke2_servers[0])  
+**Target**: First server node (rke2_servers[0])
 **Duration**: ~10-15 minutes
 
 ### Phase 4: Application Services (k8s_apps role - applications)
@@ -147,7 +147,7 @@ The automation executes in four sequential phases:
 - **ClearML**: MLOps platform with web UI, API, and file server (20 GB)
 - **n8n**: Workflow automation platform (5 GB)
 
-**Target**: First server node (rke2_servers[0])  
+**Target**: First server node (rke2_servers[0])
 **Duration**: ~10-15 minutes
 
 **Total Deployment Time**: ~30-45 minutes

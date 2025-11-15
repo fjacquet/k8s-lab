@@ -24,6 +24,7 @@ ansible all -m shell -a "sudo whoami" --become
 **Solutions**:
 
 1. **Verify SSH key**:
+
 ```bash
 # Check SSH key exists
 ls -la ~/.ssh/id_rsa
@@ -33,6 +34,7 @@ ssh-add ~/.ssh/id_rsa
 ```
 
 2. **Check inventory configuration**:
+
 ```yaml
 # Ensure correct user and key path
 ansible_user: ubuntu
@@ -40,6 +42,7 @@ ansible_ssh_private_key_file: ~/.ssh/id_rsa
 ```
 
 3. **Verify passwordless sudo**:
+
 ```bash
 # On target node
 sudo visudo
@@ -66,6 +69,7 @@ ansible all -m shell -a "sudo ufw status"
 **Solutions**:
 
 1. **Check firewall rules**:
+
 ```bash
 # Allow SSH on target nodes
 sudo ufw allow 22/tcp
@@ -73,6 +77,7 @@ sudo ufw enable
 ```
 
 2. **Verify network configuration**:
+
 ```bash
 # Check IP addresses
 ip addr show
@@ -102,6 +107,7 @@ ansible rke2_agents -m shell -a "journalctl -u rke2-agent -n 50"
 **Common Causes**:
 
 1. **Swap not disabled**:
+
 ```bash
 # Disable swap
 sudo swapoff -a
@@ -109,12 +115,14 @@ sudo sed -i '/ swap / s/^/#/' /etc/fstab
 ```
 
 2. **Port conflicts**:
+
 ```bash
 # Check if ports are in use
 sudo netstat -tulpn | grep -E '6443|9345|10250'
 ```
 
 3. **Insufficient resources**:
+
 ```bash
 # Check memory and disk
 free -h
@@ -138,21 +146,24 @@ curl -k https://172.16.86.101:9345
 **Solutions**:
 
 1. **Verify token**:
+
 ```bash
 # On server node
-cat /var/lib/rancher/rke2/server/node-token
+cat /var/lib/rancher/rke2/server/opttoken
 
 # Ensure token matches in agent config
 cat /etc/rancher/rke2/config.yaml
 ```
 
 2. **Check server URL**:
+
 ```yaml
 # Agent config should point to server
 server: https://172.16.86.101:9345
 ```
 
 3. **Verify network connectivity**:
+
 ```bash
 # From agent node
 telnet 172.16.86.101 9345
@@ -181,12 +192,14 @@ kubectl describe nodes
 **Common Causes**:
 
 1. **Insufficient resources**:
+
 ```bash
 # Check node capacity
 kubectl describe nodes | grep -A 5 "Allocated resources"
 ```
 
 2. **PVC not bound**:
+
 ```bash
 # Check PVC status
 kubectl get pvc -A
@@ -196,6 +209,7 @@ kubectl get storageclass
 ```
 
 3. **Node selector mismatch**:
+
 ```bash
 # Check pod node selector
 kubectl get pod -n <namespace> <pod-name> -o yaml | grep -A 5 nodeSelector
@@ -224,12 +238,14 @@ kubectl describe pod -n <namespace> <pod-name>
 **Solutions**:
 
 1. **Check resource limits**:
+
 ```bash
 # View pod resource requests/limits
 kubectl get pod -n <namespace> <pod-name> -o yaml | grep -A 10 resources
 ```
 
 2. **Check configuration**:
+
 ```bash
 # View pod environment variables
 kubectl get pod -n <namespace> <pod-name> -o yaml | grep -A 20 env
@@ -240,6 +256,7 @@ kubectl get secret -n <namespace>
 ```
 
 3. **Check dependencies**:
+
 ```bash
 # Ensure dependent services are running
 kubectl get pods -n <namespace>
@@ -267,17 +284,20 @@ kubectl get svc -n <namespace> -o yaml | grep -A 5 selector
 **Solutions**:
 
 1. **Verify pod is running**:
+
 ```bash
 kubectl get pods -n <namespace>
 ```
 
 2. **Check service selector**:
+
 ```bash
 # Service selector must match pod labels
 kubectl describe svc -n <namespace> <service-name>
 ```
 
 3. **Test from within cluster**:
+
 ```bash
 # Create test pod
 kubectl run test --image=busybox -it --rm -- sh
@@ -310,11 +330,13 @@ helm get values <release-name> -n <namespace>
 **Solutions**:
 
 1. **Rollback release**:
+
 ```bash
 helm rollback <release-name> -n <namespace>
 ```
 
 2. **Uninstall and reinstall**:
+
 ```bash
 helm uninstall <release-name> -n <namespace>
 # Wait for resources to be deleted
@@ -324,6 +346,7 @@ ansible-playbook playbook.yml --tags applications --ask-vault-pass
 ```
 
 3. **Check chart values**:
+
 ```bash
 # Validate values file
 helm template <release-name> <chart> -f values.yaml
@@ -354,12 +377,14 @@ kubectl get pods -n longhorn-system
 **Solutions**:
 
 1. **Verify Longhorn is running**:
+
 ```bash
 kubectl get pods -n longhorn-system
 # All pods should be Running
 ```
 
 2. **Check storage class**:
+
 ```bash
 # Ensure default storage class exists
 kubectl get storageclass
@@ -367,6 +392,7 @@ kubectl get storageclass
 ```
 
 3. **Check node storage**:
+
 ```bash
 # Verify nodes have available disk space
 kubectl get nodes
@@ -394,16 +420,19 @@ kubectl port-forward -n longhorn-system svc/longhorn-frontend 8080:80
 **Solutions**:
 
 1. **Check node disk space**:
+
 ```bash
 ansible all -m shell -a "df -h /var/lib/longhorn"
 ```
 
 2. **Verify iSCSI is running**:
+
 ```bash
 ansible all -m shell -a "systemctl status iscsid"
 ```
 
 3. **Restart Longhorn components**:
+
 ```bash
 kubectl rollout restart deployment -n longhorn-system
 ```
@@ -434,18 +463,21 @@ kubectl get pods -n kube-system -l app.kubernetes.io/name=rke2-ingress-nginx
 **Solutions**:
 
 1. **Verify MetalLB is running**:
+
 ```bash
 kubectl get pods -n metallb-system
 # controller and speaker pods should be Running
 ```
 
 2. **Check IP pool configuration**:
+
 ```bash
 kubectl describe ipaddresspool -n metallb-system default-pool
 # Verify IP range is correct
 ```
 
 3. **Check ingress controller service**:
+
 ```bash
 kubectl get svc -n kube-system rke2-ingress-nginx-controller
 # Should have EXTERNAL-IP from MetalLB pool
@@ -474,17 +506,20 @@ kubectl get ingress -n <namespace> -o yaml
 **Solutions**:
 
 1. **Configure DNS or /etc/hosts**:
+
 ```bash
 # Add to /etc/hosts
 echo "172.16.86.200 minio.ljf.home" | sudo tee -a /etc/hosts
 ```
 
 2. **Verify ingress rules**:
+
 ```bash
 kubectl describe ingress -n <namespace> <ingress-name>
 ```
 
 3. **Check ingress controller logs**:
+
 ```bash
 kubectl logs -n kube-system -l app.kubernetes.io/name=rke2-ingress-nginx
 ```
@@ -518,12 +553,14 @@ kubectl describe clusterissuer letsencrypt-staging
 **Solutions**:
 
 1. **Verify cert-manager is running**:
+
 ```bash
 kubectl get pods -n cert-manager
 # All pods should be Running
 ```
 
 2. **Check ACME challenge**:
+
 ```bash
 # View challenges
 kubectl get challenges -A
@@ -533,12 +570,14 @@ kubectl describe challenge -n <namespace> <challenge-name>
 ```
 
 3. **Verify DNS/HTTP accessibility**:
+
 ```bash
 # Ensure domain is accessible from internet (for Let's Encrypt)
 curl http://<domain>/.well-known/acme-challenge/test
 ```
 
 4. **Delete and recreate certificate**:
+
 ```bash
 kubectl delete certificate -n <namespace> <cert-name>
 # cert-manager will recreate automatically
@@ -622,18 +661,21 @@ ansible-playbook playbook.yml --tags common --ask-vault-pass
 **Solutions**:
 
 1. **Check syntax**:
+
 ```bash
 ansible-playbook playbook.yml --syntax-check
 ```
 
 2. **Lint playbook**:
+
 ```bash
 ansible-lint playbook.yml
 ```
 
 3. **Run on specific host**:
+
 ```bash
-ansible-playbook playbook.yml --limit node-1 --ask-vault-pass
+ansible-playbook playbook.yml --limit opt1 --ask-vault-pass
 ```
 
 ### Vault Password Issues

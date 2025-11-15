@@ -42,7 +42,7 @@ wait_for_condition() {
     local command=$2
     local timeout=$3
     local elapsed=0
-    
+
     while ! eval "$command" &> /dev/null; do
         if [ $elapsed -ge $timeout ]; then
             print_status 1 "$description (timeout after ${timeout}s)"
@@ -87,7 +87,7 @@ else
     print_status 1 "Only $READY_NODES nodes are Ready"
 fi
 
-SERVER_NODES=$(kubectl get nodes --no-headers -l "node-role.kubernetes.io/control-plane" 2>/dev/null | wc -l)
+SERVER_NODES=$(kubectl get nodes --no-headers -l "optrole.kubernetes.io/control-plane" 2>/dev/null | wc -l)
 if [ "$SERVER_NODES" -eq 3 ]; then
     print_status 0 "3 server (control plane) nodes detected"
 else
